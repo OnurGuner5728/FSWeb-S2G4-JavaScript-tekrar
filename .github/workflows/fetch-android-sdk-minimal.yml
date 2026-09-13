@@ -1,0 +1,27 @@
+name: Fetch Android SDK Minimal
+on:
+  push:
+    branches: [apk-signer-tool-20260913]
+  workflow_dispatch:
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK components
+        run: |
+          set -euxo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "build-tools;36.0.0" "platforms;android-36"
+          mkdir -p sdk/build-tools sdk/platforms
+          cp -a "$ANDROID_HOME/platform-tools" sdk/
+          cp -a "$ANDROID_HOME/build-tools/36.0.0" sdk/build-tools/
+          cp -a "$ANDROID_HOME/platforms/android-36" sdk/platforms/
+          test -x sdk/platform-tools/adb
+          test -x sdk/build-tools/36.0.0/apksigner
+          test -x sdk/build-tools/36.0.0/zipalign
+          sdk/build-tools/36.0.0/apksigner version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-sdk-minimal-36
+          path: sdk/
