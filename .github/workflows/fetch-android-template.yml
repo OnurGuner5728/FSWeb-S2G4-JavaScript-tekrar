@@ -1,0 +1,21 @@
+name: Fetch Godot Android template
+on:
+  push:
+    branches: [apk-signer-tool-20260913]
+  workflow_dispatch:
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download and extract Android templates
+        run: |
+          set -euxo pipefail
+          curl -L --fail --retry 3 -o templates.tpz https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
+          unzip -l templates.tpz | grep -E 'android_(debug|release)\.apk$'
+          unzip -j templates.tpz 'templates/android_debug.apk' 'templates/android_release.apk' -d android-templates
+          ls -lh android-templates
+          sha256sum android-templates/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: godot-4.7.2-android-templates
+          path: android-templates/
